@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
+    networks:
+      - pod-network
+
+  backend:
+    # Pulling the pre-built image from Docker Hub instead of building locally
+    image: ${BACKEND_IMAGE}
+    container_name: pod-backend-app
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "1010:1010"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
+    networks:
+      - pod-network
+
+  frontend:
+    # Pulling the pre-built image from Docker Hub instead of building locally
+    image: ${FRONTEND_IMAGE}
+    container_name: pod-frontend-app
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - pod-network
+
+networks:
+  pod-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
