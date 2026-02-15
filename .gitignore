@@ -1,8 +1,11 @@
+**/pod-key
+**/pod-key.pub
+
+pod-key
+pod-key.pub
+
 .terraform/
 *.tfstate
 *.tfstate.backup
-.terraform.lock.hcl
-terraform/pod-key
-terraform/pod-key.pub
 *.pem
-*.env
+.env
