@@ -1,11 +1,12 @@
 **/pod-key
 **/pod-key.pub
 
-pod-key
-pod-key.pub
+prod-key
+prod-key.pub
 
 .terraform/
 *.tfstate
 *.tfstate.backup
 *.pem
+*.tfvars
 .env
