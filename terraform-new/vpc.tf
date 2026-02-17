@@ -20,28 +20,34 @@ resource "aws_subnet" "public" {
   tags = { Name = "public-subnet" }
 }
 
-# Private Subnet (For Backend App)
+# Private Subnet 1 (For Backend App - Zone A)
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "ap-south-1a"
-  tags = { Name = "private-subnet" }
+  tags = { Name = "private-subnet-1" }
 }
 
-# --- NAT Gateway Setup (Industrial requirement) ---
-# EIP for NAT
+# --- NEW: Private Subnet 2 (Required for RDS Multi-AZ - Zone B) ---
+resource "aws_subnet" "private_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.3.0/24"
+  availability_zone = "ap-south-1b" # Different AZ than private-subnet-1
+  tags = { Name = "private-subnet-2" }
+}
+
+# --- NAT Gateway Setup ---
 resource "aws_eip" "nat" {
   domain = "vpc"
 }
 
-# NAT Gateway (In Public Subnet)
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public.id
   tags          = { Name = "main-nat-gw" }
 }
 
-# Route Table for Public
+# Route Tables
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
@@ -50,7 +56,6 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Route Table for Private (Uses NAT Gateway)
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
   route {
@@ -65,7 +70,13 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+# Associate both Private Subnets with the Private Route Table
 resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_2" {
+  subnet_id      = aws_subnet.private_2.id
   route_table_id = aws_route_table.private.id
 }

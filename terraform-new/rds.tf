@@ -1,7 +1,7 @@
 # RDS Subnet Group 
 resource "aws_db_subnet_group" "main" {
   name       = "main-db-subnet-group"
-  subnet_ids = [aws_subnet.private.id, aws_subnet.public.id] # RDS-subnet 
+  subnet_ids = [aws_subnet.private.id, aws_subnet.private_2.id] 
 
   tags = { Name = "Main DB Subnet Group" }
 }
@@ -35,7 +35,7 @@ resource "aws_db_instance" "mysql" {
   engine_version         = "8.0"
   instance_class         = "db.t3.micro"
   username               = "admin"
-  password               = var.db_password      #Secret Manager
+  password               = var.db_password
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
   db_subnet_group_name   = aws_db_subnet_group.main.name
